@@ -1,0 +1,316 @@
+---
+title: "exercise 9"
+author: "Riley N Derby"
+date: "2024-03-18"
+output: html_document
+---
+
+Lets practices some simple linear regression
+
+
+step 1: load in street data
+```{r}
+library(tidyverse)
+library(manipulate)
+library(ggplot2)
+library(skimr)
+
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/Street_et_al_2017.csv"
+d <- read_csv(f, col_names = TRUE)
+
+#exploratory data analysis
+skim(d)
+
+
+```
+
+
+step 2: plot brain size (ECV) as a function of social group size (Group_size), longevity (Longevity), juvenile period length (Weaning), and reproductive lifespan (Repro_lifespan).
+
+```{r}
+ggplot(d, aes(x = Group_size, y = ECV)) +
+  geom_point(na.rm = T) +
+  theme_classic()
+
+
+ggplot(d, aes(x = Longevity , y = ECV)) +
+  geom_point(na.rm = T) +
+  theme_classic()
+
+ggplot(d, aes(x = Weaning , y = ECV)) +
+  geom_point(na.rm = T) +
+  theme_classic()
+
+
+ggplot(d, aes(x = Repro_lifespan , y = ECV)) +
+  geom_point(na.rm = T) +
+  theme_classic()
+```
+
+
+step 3: Derive by hand the ordinary least squares regression coefficients and 
+ for ECV as a function of social group size.
+
+```{r}
+#remove na's frome each variable first
+gs <- d %>%
+  filter(!is.na(Group_size), !is.na(ECV))
+
+beta1GS <- cov(gs$Group_size, gs$ECV)/var(gs$Group_size)
+beta1GS
+
+beta0GS <- mean(gs$ECV)- (beta1GS * mean(gs$Group_size))
+beta0GS
+
+longev <- d %>%
+  filter(!is.na(Longevity), !is.na(ECV))
+
+beta1Long <- cov(longev$Longevity, longev$ECV)/var(longev$Longevity)
+beta1Long
+
+beta0Long <- mean(longev$ECV)- (beta1Long * mean(longev$Longevity))
+beta0Long
+
+wean <- d %>%
+  filter(!is.na(Weaning), !is.na(ECV))
+
+beta1Wean <- cov(wean$Weaning, wean$ECV)/var(wean$Weaning)
+beta1Wean
+
+beta0Wean <- mean(wean$ECV)- (beta1Wean * mean(wean$Weaning))
+beta0Wean
+
+rl <- d %>%
+  filter(!is.na(Repro_lifespan), !is.na(ECV))
+
+beta1RL <- cov(rl$Repro_lifespan, rl$ECV)/var(rl$Repro_lifespan)
+beta1RL
+
+beta0RL <- mean(rl$ECV)- (beta1RL * mean(rl$Repro_lifespan))
+beta0RL
+```
+
+
+
+step 4: Confirm that you get the same results using the lm() function.
+
+```{r}
+GS <- lm(formula = ECV ~ Group_size, data = d)
+
+summary(GS)
+names(GS)
+
+Longev <- lm(formula = ECV ~ Longevity, data = d)
+
+summary(Longev)
+names(Longev)
+
+Wean <- lm(formula = ECV ~ Weaning, data = d)
+
+summary(Wean)
+names(Wean)
+
+RL <- lm(formula = ECV ~ Repro_lifespan, data = d)
+
+summary(RL)
+names(RL)
+
+```
+everything looks correct after checking my hand calculations with lm() function
+
+step 5: Repeat the analysis above for three different major radiations of primates - “catarrhines”, “platyrrhines”, and “strepsirhines”) separately. These are stored in the variable Taxonomic_group. Do your regression coefficients differ among groups? How might you determine this? 
+
+```{r}
+
+#cattarhine
+dCat <- d %>%
+  filter(Taxonomic_group == "Catarrhini")
+
+GS_dfCat <- lm(formula = ECV ~ Group_size, data = dCat)
+summary(GS_dfCat)
+
+Longev_dfCat <- lm(formula = ECV ~ Longevity, data = dCat)
+summary(Longev_dfCat)
+
+Wean_dfCat <- lm(formula = ECV ~ Weaning, data = dCat)
+summary(Wean_dfCat)
+
+RL_dfCat <- lm(formula = ECV ~ Repro_lifespan, data = dCat)
+summary(RL_dfCat)
+
+
+##platy
+
+dfplat <- d %>%
+  filter(Taxonomic_group == "Platyrrhini")
+
+GS_dfplat <- lm(formula = ECV ~ Group_size, data = dfplat)
+summary(GS_dfplat)
+
+Longev_dfplat <- lm(formula = ECV ~ Longevity, data = dfplat)
+summary(Longev_dfplat)
+
+Wean_dfplat <- lm(formula = ECV ~ Weaning, data = dfplat)
+summary(Wean_dfplat)
+
+RL_dfplat <- lm(formula = ECV ~ Repro_lifespan, data = dfplat)
+summary(RL_dfplat)
+
+
+##streps
+dfStrep <- d %>%
+  filter(Taxonomic_group == "Strepsirhini")
+
+GS_dfStrep <- lm(formula = ECV ~ Group_size, data = dfStrep)
+summary(GS_dfStrep)
+
+Longev_dfStrep <- lm(formula = ECV ~ Longevity, data = dfStrep)
+summary(Longev_dfStrep)
+
+Wean_dfStrep <- lm(formula = ECV ~ Weaning, data = dfStrep)
+summary(Wean_dfStrep)
+
+RL_dfStrep <- lm(formula = ECV ~ Repro_lifespan, data = dfStrep)
+summary(RL_dfStrep)
+
+#use tidy to get sense if regression coef differ. If we wanted to determine this we could create a distribution and see if they are statistically different
+library(broom)
+
+
+tidy(GS_dfCat)
+tidy(GS_dfplat)
+tidy(GS_dfStrep)
+
+tidy(Longev_dfCat)
+tidy(Longev_dfplat)
+tidy(Longev_dfStrep)
+
+tidy(Wean_dfCat)
+tidy(Wean_dfplat)
+tidy(Wean_dfStrep)
+
+tidy(RL_dfCat)
+tidy(RL_dfplat)
+tidy(RL_dfStrep)
+```
+
+
+step 6: For your first regression of ECV on social group size, calculate the standard error for the slope coefficient, the 95% CI, and the p value associated with this coefficient by hand. Also extract this same information from the results of running the lm() function.
+
+```{r}
+#lets start with the lm() function to find values we are looking for
+
+model <- lm(data = gs, ECV ~ Group_size)
+summary(model)
+
+residuals <- gs$ECV - (beta0GS + beta1GS * gs$Group_size)
+
+numerator <- sum(residuals^2)
+denominator <- sum((gs$Group_size - mean(gs$Group_size))^2) * (nrow(gs)-2)
+
+## lets start with standard error for beta1 (slope coefficient)
+SEbeta1 <- sqrt(numerator/denominator)
+SEbeta1
+
+
+## now lets calculate the 95% confidence interval
+
+mod.summary <- tidy(model) #summarize the model information
+mod.summary
+
+#using code from CI section of tony's book with t distribution
+alpha <- 0.05
+lower <- mod.summary$estimate -
+  qt(1 - alpha / 2, df = nrow(gs) - 2) * mod.summary$std.error
+
+upper <- mod.summary$estimate +
+  qt(1 - alpha / 2, df = nrow(gs) - 2) * mod.summary$std.error
+CI <- c(lower, upper)
+CI
+
+#calculate p-value
+
+#z <- (m - mu)/se
+#(p <- 1 - pt(z, df = n - 1))
+mod.summary$calc.statistic <- (mod.summary$estimate-0)/mod.summary$std.error
+#(p <- pt(z, df = n - 1, lower.tail = FALSE))
+mod.summary$calc.p.value <- 2 * pt(mod.summary$calc.statistic,
+  df=nrow(gs)-2, lower.tail = FALSE)
+mod.summary
+
+```
+
+step 7: Use a permutation approach with 1000 permutations to generate a null sampling distribution for the slope coefficient. What is it that you need to permute? What is the p value associated with your original slope coefficient? You can use either the percentile method (i.e., using quantiles from the actual permutation-based null sampling distribution) or a theory-based method (i.e., using the standard deviation of the permutation-based null sampling distribution as the estimate of the standard error, along with a normal or t distribution), or both, to calculate this p value.
+
+```{r}
+# so i need to calculate original slope and then permute
+library(mosaic)
+library(infer)
+
+#calculate slope
+conf_level <- 0.975
+o_slope <- lm(data = gs, ECV ~ Group_size) %>% #create model
+  tidy(conf.int=TRUE, conf.level=conf_level) %>% 
+  mutate(
+    lower = estimate - std.error * crit_value,
+    upper = estimate + std.error * crit_value
+  ) %>%
+  filter(term=="Group_size")
+o_slope
+
+
+reps <- 1000
+
+permute_slope <- gs %>%
+  specify(formula =  ECV ~ Group_size) %>%
+  hypothesize(null = "independence")%>%
+  generate(reps, type = "permute") %>%
+  calculate(stat = "slope")
+head(permute_slope)
+str(permute_slope)
+
+## got my distribution now.. lets calculate CI
+crit_value <- qt(0.975, df = nrow(gs)-2)
+
+PS_CI <- permute_slope %>%
+  summarise(estimate = mean(stat),
+            se = sd(stat),
+            lower1 = estimate - se * crit_value,
+            upper1 = estimate + se * crit_value,
+    )
+PS_CI
+
+
+
+perm_p_value <- get_p_value(permute_slope, obs_stat = o_slope$estimate, direction="two_sided")
+perm_p_value
+
+
+```
+
+step 8 : Use bootstrapping to generate a 95% CI for your estimate of the slope coefficient using both the percentile method and the theory-based method (i.e., using on the standard deviation of the bootstrapped sampling distribution as an estimate of the standard error). Do these CIs suggest that your slope coefficient is different from zero?
+
+```{r}
+bootstrap_slope <- gs %>%
+  specify(formula =  ECV ~ Group_size) %>%
+  hypothesize(null = "independence")%>%
+  generate(reps, type = "bootstrap") %>%
+  calculate(stat = "slope")
+head(bootstrap_slope)
+
+
+
+#confidence interval
+b_CI <- bootstrap_slope %>%
+  summarize(
+    lower_b = quantile(stat, 0.025),
+    upper_b = quantile(stat, 0.975)
+  )
+b_CI
+
+#p-value
+b_p_value <- get_p_value(bootstrap_slope, obs_stat = o_slope$estimate, direction = "greater")
+b_p_value
+```
+
+the slope appears to be different from 0 
